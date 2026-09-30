@@ -1,34 +1,11 @@
 package com.example.dao;
-
-import com.example.model.Student;
-import com.example.util.DBConnection;
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-
+import com.example.model.Student; import com.example.util.DBConnection; import java.sql.*; import java.util.*;
 public class StudentDAO {
-    public List<Student> findAll() throws SQLException {
-        List<Student> list = new ArrayList<>();
-        String sql = "SELECT id,name,email,course,age FROM students ORDER BY id DESC";
-        try (Connection con=DBConnection.getConnection(); PreparedStatement ps=con.prepareStatement(sql); ResultSet rs=ps.executeQuery()) {
-            while(rs.next()) list.add(map(rs));
-        }
-        return list;
-    }
-    public void save(Student s) throws SQLException {
-        String sql="INSERT INTO students(name,email,course,age) VALUES(?,?,?,?)";
-        try(Connection con=DBConnection.getConnection(); PreparedStatement ps=con.prepareStatement(sql)) {
-            ps.setString(1,s.getName()); ps.setString(2,s.getEmail()); ps.setString(3,s.getCourse()); ps.setInt(4,s.getAge()); ps.executeUpdate();
-        }
-    }
-    public void update(Student s) throws SQLException {
-        String sql="UPDATE students SET name=?,email=?,course=?,age=? WHERE id=?";
-        try(Connection con=DBConnection.getConnection(); PreparedStatement ps=con.prepareStatement(sql)) {
-            ps.setString(1,s.getName()); ps.setString(2,s.getEmail()); ps.setString(3,s.getCourse()); ps.setInt(4,s.getAge()); ps.setInt(5,s.getId()); ps.executeUpdate();
-        }
-    }
-    public void delete(int id) throws SQLException {
-        try(Connection con=DBConnection.getConnection(); PreparedStatement ps=con.prepareStatement("DELETE FROM students WHERE id=?")) { ps.setInt(1,id); ps.executeUpdate(); }
-    }
-    private Student map(ResultSet rs) throws SQLException { return new Student(rs.getInt("id"),rs.getString("name"),rs.getString("email"),rs.getString("course"),rs.getInt("age")); }
+ public List<Student> findAll() throws SQLException { List<Student> list=new ArrayList<>(); String q="SELECT * FROM students ORDER BY id DESC"; try(Connection c=DBConnection.getConnection(); PreparedStatement p=c.prepareStatement(q); ResultSet r=p.executeQuery()){while(r.next())list.add(map(r));} return list; }
+ public Student findById(int id) throws SQLException {String q="SELECT * FROM students WHERE id=?"; try(Connection c=DBConnection.getConnection(); PreparedStatement p=c.prepareStatement(q)){p.setInt(1,id);try(ResultSet r=p.executeQuery()){return r.next()?map(r):null;}}}
+ public void insert(Student s) throws SQLException {String q="INSERT INTO students(name,email,course,age) VALUES(?,?,?,?)";try(Connection c=DBConnection.getConnection();PreparedStatement p=c.prepareStatement(q)){set(p,s);p.executeUpdate();}}
+ public void update(Student s) throws SQLException {String q="UPDATE students SET name=?,email=?,course=?,age=? WHERE id=?";try(Connection c=DBConnection.getConnection();PreparedStatement p=c.prepareStatement(q)){set(p,s);p.setInt(5,s.getId());p.executeUpdate();}}
+ public void delete(int id) throws SQLException {String q="DELETE FROM students WHERE id=?";try(Connection c=DBConnection.getConnection();PreparedStatement p=c.prepareStatement(q)){p.setInt(1,id);p.executeUpdate();}}
+ private void set(PreparedStatement p,Student s)throws SQLException{p.setString(1,s.getName());p.setString(2,s.getEmail());p.setString(3,s.getCourse());p.setInt(4,s.getAge());}
+ private Student map(ResultSet r)throws SQLException{return new Student(r.getInt("id"),r.getString("name"),r.getString("email"),r.getString("course"),r.getInt("age"));}
 }

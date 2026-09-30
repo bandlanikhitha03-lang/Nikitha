@@ -1,30 +1,6 @@
 package com.example.controller;
-
-import com.example.dao.StudentDAO;
-import com.example.model.Student;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.*;
-import java.io.IOException;
-
-@WebServlet("/students")
-public class StudentServlet extends HttpServlet {
-    private final StudentDAO dao = new StudentDAO();
-    protected void doGet(HttpServletRequest req,HttpServletResponse resp) throws ServletException,IOException {
-        String action=req.getParameter("action");
-        try {
-            if("delete".equals(action)) { dao.delete(Integer.parseInt(req.getParameter("id"))); resp.sendRedirect(req.getContextPath()+"/students"); return; }
-            req.setAttribute("students",dao.findAll());
-            req.getRequestDispatcher("/WEB-INF/views/students.jsp").forward(req,resp);
-        } catch(Exception e){ throw new ServletException(e); }
-    }
-    protected void doPost(HttpServletRequest req,HttpServletResponse resp) throws ServletException,IOException {
-        req.setCharacterEncoding("UTF-8");
-        try {
-            String id=req.getParameter("id");
-            Student s=new Student(); s.setName(req.getParameter("name")); s.setEmail(req.getParameter("email")); s.setCourse(req.getParameter("course")); s.setAge(Integer.parseInt(req.getParameter("age")));
-            if(id==null || id.isBlank()) dao.save(s); else { s.setId(Integer.parseInt(id)); dao.update(s); }
-            resp.sendRedirect(req.getContextPath()+"/students");
-        } catch(Exception e){ throw new ServletException(e); }
-    }
+import com.example.model.Student; import com.example.service.StudentService; import jakarta.servlet.*; import jakarta.servlet.http.*; import jakarta.servlet.annotation.*; import java.io.IOException;
+@WebServlet("/students/*") public class StudentServlet extends HttpServlet { private final StudentService service=new StudentService();
+ protected void doGet(HttpServletRequest req,HttpServletResponse resp)throws ServletException,IOException{String path=req.getPathInfo();try{if("/new".equals(path)){req.getRequestDispatcher("/WEB-INF/views/form.jsp").forward(req,resp);}else if("/edit".equals(path)){req.setAttribute("student",service.get(Integer.parseInt(req.getParameter("id"))));req.getRequestDispatcher("/WEB-INF/views/form.jsp").forward(req,resp);}else if("/delete".equals(path)){service.delete(Integer.parseInt(req.getParameter("id")));resp.sendRedirect(req.getContextPath()+"/students");}else{req.setAttribute("students",service.getAll());req.getRequestDispatcher("/WEB-INF/views/students.jsp").forward(req,resp);}}catch(Exception e){throw new ServletException(e);}}
+ protected void doPost(HttpServletRequest req,HttpServletResponse resp)throws ServletException,IOException{try{Student s=new Student();String id=req.getParameter("id");s.setId(id==null||id.isBlank()?0:Integer.parseInt(id));s.setName(req.getParameter("name"));s.setEmail(req.getParameter("email"));s.setCourse(req.getParameter("course"));s.setAge(Integer.parseInt(req.getParameter("age")));service.save(s);resp.sendRedirect(req.getContextPath()+"/students");}catch(Exception e){throw new ServletException(e);}}
 }
